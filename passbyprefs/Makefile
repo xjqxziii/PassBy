@@ -5,7 +5,7 @@ BUNDLE_NAME = PassByPrefs
 PassByPrefs_FILES = PassByRootListController.m
 PassByPrefs_INSTALL_PATH = /Library/PreferenceBundles
 PassByPrefs_FRAMEWORKS = UIKit Message
-PassByPrefs_PRIVATE_FRAMEWORKS = Preferences MobileWiFi BluetoothManager
+PassByPrefs_PRIVATE_FRAMEWORKS = Preferences MobileWiFi BluetoothManager BatteryCenter
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

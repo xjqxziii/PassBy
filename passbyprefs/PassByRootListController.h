@@ -37,3 +37,23 @@ extern Boolean          WiFiNetworkIsWEP(WiFiNetworkRef network);
 extern Boolean          WiFiNetworkIsWPA(WiFiNetworkRef network);
 extern Boolean          WiFiNetworkIsEAP(WiFiNetworkRef network);
 extern Boolean          WiFiNetworkIsHidden(WiFiNetworkRef network);
+
+
+
+@interface BCBatteryDeviceController : NSObject
++ (id)sharedInstance;
+- (NSArray *)connectedDevices;
+@end
+
+@interface BCBatteryDevice : NSObject
+@property(nonatomic) unsigned int accessoryCategory;
+@property(nonatomic) unsigned int productIdentifier;
+- (NSString *)name;
+@end
+
+
+#if DEBUG
+#   define PBLog(...) NSLog(@"*g* %s:%d: %@", __FILE__, __LINE__, [NSString stringWithFormat:__VA_ARGS__])
+#else
+#   define PBLog(...)
+#endif

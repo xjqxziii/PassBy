@@ -1,6 +1,6 @@
 # Target iOS 9+ Devices; use the iOS 13.3 SDK
-TARGET = iphone:clang:13.3:9.0
-SYSROOT = $(THEOS)/sdks/iPhoneOS13.3.sdk
+TARGET = iphone:clang:13.7:9.0
+SYSROOT = $(THEOS)/sdks/iPhoneOS13.7.sdk
 export ARCHS = armv7 arm64 arm64e
 
 INSTALL_TARGET_PROCESSES = SpringBoard

@@ -492,14 +492,57 @@ static void _WiFiLinkDidChange(WiFiDeviceClientRef, void const *)
 - (void)_connectedStatusChanged;
 @end
 
+@interface BCBatteryDeviceController : NSObject
++ (id)sharedInstance;
+- (NSArray *)connectedDevices;
+@end
+
+@interface BCBatteryDevice : NSObject
+@property(nonatomic) unsigned int accessoryCategory;
+@property(nonatomic) unsigned int productIdentifier;
+- (NSString *)name;
+@end
+
+static BOOL isUsingWatch()
+{
+    BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
+    if (!batteryDeviceController) {
+        return false;
+    }
+
+    for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
+        if ([device accessoryCategory] == 3) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static BOOL isUsingBT()
 {
     if (useGracePeriodOnBT && allowedBTs) {
         NSArray * connectedDevices = [[BluetoothManager sharedInstance] connectedDevices];
         for (BluetoothDevice * bluetoothDevice in connectedDevices) {
             NSString * deviceName = [bluetoothDevice name];
+            PBLog(@"*g* BluetoothDevice: %@", deviceName);
             if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
                 return YES;
+            }
+        }
+
+        BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
+        if (batteryDeviceController) {
+            for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
+                int productIdentifier = [device productIdentifier];
+                if (productIdentifier == 0) { // 排除本机
+                    continue;
+                }
+                NSString * deviceName = [device name];
+                PBLog(@"*g* BluetoothDevice: %@-%d", deviceName, productIdentifier);
+                if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
+                    return YES;
+                }
             }
         }
     }
@@ -525,34 +568,6 @@ static BOOL isUsingHeadphones()
 {
     return [[%c(VolumeControl) sharedVolumeControl] headphonesPresent];
 }
-
-
-@interface BCBatteryDeviceController : NSObject
-+ (id)sharedInstance;
-- (NSArray *)connectedDevices;
-@end
-
-@interface BCBatteryDevice : NSObject
-@property(nonatomic) unsigned long long accessoryCategory;
-@end
-
-static BOOL isUsingWatch()
-{
-    BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
-    if (!batteryDeviceController) {
-        return false;
-    }
-
-    for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
-        if ([device accessoryCategory] == 3) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
 
 
 
@@ -719,7 +734,7 @@ static void lockstateChanged(
             }
         );
     }
-    PBLog(@"*g* done setting lockedState: ", lastLockedState);
+    PBLog(@"*g* done setting lockedState: %d", lastLockedState);
 }
 
 

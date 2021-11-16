@@ -394,6 +394,36 @@ NSDictionary * _networksDict;
             }
         }
 
+        BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
+        if (batteryDeviceController) {
+            for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
+                int productIdentifier = [device productIdentifier];
+                if (productIdentifier == 0) { // 排除本机
+                    continue;
+                }
+                NSString * name = [device name];
+                if (name) {
+                    PSSpecifier * specifier =
+                        [ PSSpecifier
+                            preferenceSpecifierNamed:name
+                            target:self
+                            set:@selector(setPreferenceValue:specifier:)
+                            get:@selector(readPreferenceValue:)
+                            detail:Nil
+                            cell:PSSwitchCell
+                            edit:Nil
+                        ];
+                    [specifier setProperty:[NSString stringWithString:name] forKey:@"key"];
+                    [specifier setProperty:[[NSNumber alloc] initWithBool:TRUE] forKey:@"enabled"];
+                    [specifier
+                        setProperty:[[bluetoothList valueForKey:SHA1(name)] copy]?:@(NO)
+                        forKey:@"default"
+                    ];
+                    [specifiers addObject:specifier];
+                }
+            }
+        }
+
         [bluetoothList release];
         _specifiers = specifiers;
     }
