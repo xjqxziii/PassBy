@@ -2,6 +2,7 @@
 TARGET = iphone:clang:13.7:9.0
 SYSROOT = $(THEOS)/sdks/iPhoneOS13.7.sdk
 export ARCHS = armv7 arm64 arm64e
+THEOS_DEVICE_IP = 172.19.224.127
 
 INSTALL_TARGET_PROCESSES = SpringBoard
 

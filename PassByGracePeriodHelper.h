@@ -30,17 +30,25 @@ static void updateBTGracePeriod()
 {
     @synchronized(BTGracePeriodSyncObj) {
         [gracePeriodBTEnds release];
-        gracePeriodBTEnds =
-            useGracePeriodOnBT && isUsingBT()
-                ? (gracePeriodOnBT
-                    ? [[NSDate dateWithTimeIntervalSinceNow:gracePeriodOnBT] retain]
-                    : [[NSDate distantFuture] copy]
-                ) : nil;
+        if (!useGracePeriodOnBT) {
+            gracePeriodBTEnds = nil;
+        } else {
+            // 因为判断蓝牙连接增加了电量的判断，所以不能完全监听蓝牙连接状态变化，这里先改成true
+            // BOOL checkBT = isUsingBT();
+            BOOL checkBT = true;
+            gracePeriodBTEnds = checkBT
+                    ? (gracePeriodOnBT
+                        ? [[NSDate dateWithTimeIntervalSinceNow:gracePeriodOnBT] retain]
+                        : [[NSDate distantFuture] copy]
+                    ) : nil;
+        }
+        PBLog(@"set gracePeriodBTEnds %d %@", useGracePeriodOnBT, gracePeriodBTEnds);
     }
 }
 
 static void updateAllGracePeriods()
 {
+    PBLog(@"updateAllGracePeriods");
     updateGracePeriod();
     updateWiFiGracePeriod();
     updateBTGracePeriod();
@@ -58,6 +66,7 @@ static void invalidateAllGracePeriods()
     }
 
     @synchronized(BTGracePeriodSyncObj) {
+        PBLog(@"invalidateAllGracePeriods set gracePeriodBTEnds nil");
         [gracePeriodBTEnds release];
         gracePeriodBTEnds = nil;
     }
@@ -274,10 +283,13 @@ static BOOL isInGrace()
     }
 
     @synchronized(BTGracePeriodSyncObj) {
+
+        PBLog(@"BTGracePeriod");
         if (gracePeriodBTEnds
         && [gracePeriodBTEnds compare:[NSDate date]] == NSOrderedDescending
         && isUsingBT()
         ) {
+            PBLog(@"BTGracePeriod get yes");
             return YES;
         } else {
             [gracePeriodBTEnds release];

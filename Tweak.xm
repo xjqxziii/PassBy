@@ -274,6 +274,7 @@ static BOOL checkAttemptedUnlock(NSString * passcode)
 
 static void unlockDevice(BOOL finishUIUnlock)
 {
+    PBLog(@"unlockDevice %u", finishUIUnlock);
     [   [SBLockScreenManager sharedInstance]
         _attemptUnlockWithPasscode:truePasscode
         finishUIUnlock: finishUIUnlock
@@ -521,7 +522,9 @@ static BOOL isUsingWatch()
 
 static BOOL isUsingBT()
 {
+    PBLog(@"*g* isUsingBT");
     if (useGracePeriodOnBT && allowedBTs) {
+        PBLog(@"*g* allowedBTs %d, %@", useGracePeriodOnBT, allowedBTs);
         NSArray * connectedDevices = [[BluetoothManager sharedInstance] connectedDevices];
         for (BluetoothDevice * bluetoothDevice in connectedDevices) {
             NSString * deviceName = [bluetoothDevice name];
@@ -533,13 +536,13 @@ static BOOL isUsingBT()
 
         BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
         if (batteryDeviceController) {
+            PBLog(@"*g* BCBatteryDevices: %@", [batteryDeviceController connectedDevices]);
             for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
                 int productIdentifier = [device productIdentifier];
                 if (productIdentifier == 0) { // 排除本机
                     continue;
                 }
                 NSString * deviceName = [device name];
-                PBLog(@"*g* BluetoothDevice: %@-%d", deviceName, productIdentifier);
                 if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
                     return YES;
                 }
@@ -554,6 +557,7 @@ static BOOL isUsingBT()
 {
     %orig;
     if (allowBTGPWhileLocked)
+        PBLog(@"connectedStatusChanged");
         updateBTGracePeriod();
 }
 %end
@@ -673,12 +677,15 @@ static void displayStatusChanged(
             dispatch_get_main_queue(),
             ^(void)
             {
+                BOOL locked = isDeviceLocked();
+                if (!locked) return;
+                PBLog(@"displayStatusChanged");
                 if (getState("com.apple.iokit.hid.displayStatus")
                 && truePasscode
                 && [truePasscode length]
                 && isInGrace()
-                && ([[SBLockStateAggregator sharedInstance] lockState] & LOCKSTATE_NEEDSAUTH_MASK)
                 ) {
+                    PBLog(@"try unlockDevice");
                     unlockDevice(
                         dismissLS
                         && !NCHasContent
@@ -839,6 +846,7 @@ static void passBySettingsChanged(
     }
 
     @synchronized(BTGracePeriodSyncObj) {
+        PBLog(@"passBySettingsChanged set gracePeriodBTEnds nil");
         [gracePeriodBTEnds      release];
         gracePeriodBTEnds       = nil;
     }
