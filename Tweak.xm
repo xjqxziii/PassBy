@@ -558,7 +558,7 @@ static BOOL isUsingBT()
     %orig;
     if (allowBTGPWhileLocked)
         PBLog(@"connectedStatusChanged");
-        updateBTGracePeriod();
+        updateBTGracePeriod(YES);
 }
 %end
 

@@ -26,16 +26,15 @@ static void updateWiFiGracePeriod()
     }
 }
 
-static void updateBTGracePeriod()
+static void updateBTGracePeriod(BOOL connectChange)
 {
     @synchronized(BTGracePeriodSyncObj) {
         [gracePeriodBTEnds release];
         if (!useGracePeriodOnBT) {
             gracePeriodBTEnds = nil;
         } else {
-            // 因为判断蓝牙连接增加了电量的判断，所以不能完全监听蓝牙连接状态变化，这里先改成true
-            // BOOL checkBT = isUsingBT();
-            BOOL checkBT = true;
+            // 因为增加了对手环的判断，所以不能完全监听蓝牙连接状态变化，这里先改成true
+            BOOL checkBT = connectChange || isUsingBT();
             gracePeriodBTEnds = checkBT
                     ? (gracePeriodOnBT
                         ? [[NSDate dateWithTimeIntervalSinceNow:gracePeriodOnBT] retain]
@@ -51,7 +50,7 @@ static void updateAllGracePeriods()
     PBLog(@"updateAllGracePeriods");
     updateGracePeriod();
     updateWiFiGracePeriod();
-    updateBTGracePeriod();
+    updateBTGracePeriod(NO);
     wasUsingHeadphones = isUsingHeadphones();
 }
 
@@ -228,6 +227,7 @@ static void refreshDisabledInterval()
 
 static BOOL isTemporaryDisabled()
 {
+    PBLog(@"isTemporaryDisabled %d", disableDuringTime);
     if (!disableDuringTime)
         return NO;
 

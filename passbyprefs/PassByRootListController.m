@@ -359,6 +359,7 @@ NSDictionary * _networksDict;
 {
 	if (!_specifiers) {
         NSMutableArray * specifiers = [NSMutableArray new];
+        NSMutableSet * allNames = [NSMutableSet new];
 
         NSDictionary * bluetoothList =
             [   [NSDictionary alloc]
@@ -373,6 +374,7 @@ NSDictionary * _networksDict;
                 NSString * name = [bluetoothDevice name];
 
                 if (name) {
+                    [allNames addObject:name];
                     PSSpecifier * specifier =
                         [ PSSpecifier
                             preferenceSpecifierNamed:name
@@ -403,6 +405,10 @@ NSDictionary * _networksDict;
                 }
                 NSString * name = [device name];
                 if (name) {
+                    if ([allNames containsObject:name]) {
+                        continue;
+                    }
+                    [allNames addObject:name];
                     PSSpecifier * specifier =
                         [ PSSpecifier
                             preferenceSpecifierNamed:name
@@ -425,6 +431,7 @@ NSDictionary * _networksDict;
         }
 
         [bluetoothList release];
+        [allNames release];
         _specifiers = specifiers;
     }
 
