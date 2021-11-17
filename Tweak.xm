@@ -534,6 +534,7 @@ static BOOL isUsingHeadphones()
 
 @interface BCBatteryDevice : NSObject
 @property(nonatomic) unsigned long long accessoryCategory;
+@property(nonatomic) unsigned int productIdentifier;
 @end
 
 static BOOL isUsingWatch()
@@ -545,6 +546,9 @@ static BOOL isUsingWatch()
 
     for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
         if ([device accessoryCategory] == 3) {
+            return true;
+        }
+        if ([device productIdentifier] == 91) {
             return true;
         }
     }
