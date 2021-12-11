@@ -512,7 +512,7 @@ static BOOL isUsingWatch()
     }
 
     for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
-        if ([device accessoryCategory] == 3) {
+        if ([device accessoryCategory] == 3 || [device productIdentifier] == 91) {
             return true;
         }
     }
@@ -524,30 +524,31 @@ static BOOL isUsingBT()
 {
     PBLog(@"*g* isUsingBT");
     if (useGracePeriodOnBT && allowedBTs) {
-        PBLog(@"*g* allowedBTs %d, %@", useGracePeriodOnBT, allowedBTs);
         NSArray * connectedDevices = [[BluetoothManager sharedInstance] connectedDevices];
+        PBLog(@"*g* BluetoothDevice: %@", connectedDevices);
         for (BluetoothDevice * bluetoothDevice in connectedDevices) {
             NSString * deviceName = [bluetoothDevice name];
-            PBLog(@"*g* BluetoothDevice: %@", deviceName);
             if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
                 return YES;
             }
         }
-
-        BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
-        if (batteryDeviceController) {
-            PBLog(@"*g* BCBatteryDevices: %@", [batteryDeviceController connectedDevices]);
-            for (BCBatteryDevice *device in [batteryDeviceController connectedDevices]) {
-                int productIdentifier = [device productIdentifier];
-                if (productIdentifier == 0) { // 排除本机
-                    continue;
-                }
-                NSString * deviceName = [device name];
-                if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
-                    return YES;
+        if (!watchAutoUnlock) {
+            BCBatteryDeviceController *batteryDeviceController = [BCBatteryDeviceController sharedInstance];
+            if (batteryDeviceController) {
+                NSArray * BCconnectedDevices = [batteryDeviceController connectedDevices];
+                PBLog(@"*g* BCBatteryDevices: %@", BCconnectedDevices);
+                for (BCBatteryDevice *device in BCconnectedDevices) {
+                    if ([device productIdentifier] == 0) { // 排除本机
+                        continue;
+                    }
+                    NSString * deviceName = [device name];
+                    if (deviceName && [deviceName length] && [allowedBTs containsObject:SHA1(deviceName)]) {
+                        return YES;
+                    }
                 }
             }
         }
+        
     }
     return NO;
 }
